@@ -41,6 +41,15 @@ public class ToppingsController : ControllerBase
 	[HttpPost]
 	public async Task<ActionResult<Topping>> PostTopping(Topping topping)
 	{
+		bool isDupe = await _context.Toppings.AnyAsync(
+			t => String.Equals(t.Name, topping.Name, StringComparison.OrdinalIgnoreCase)
+		);
+
+		if (isDupe)
+		{
+			return BadRequest($"A topping with the name '{topping.Name}' already exists.");
+		}
+
 		_context.Toppings.Add(topping);
 
 		await _context.SaveChangesAsync();
@@ -55,6 +64,15 @@ public class ToppingsController : ControllerBase
 		if (id != topping.Id)
 		{
 			return BadRequest();
+		}
+
+		bool isDupe = await _context.Toppings.AnyAsync(
+			t => t.Id != id && String.Equals(t.Name, topping.Name, StringComparison.OrdinalIgnoreCase)
+		);
+
+		if (isDupe)
+		{
+			return BadRequest($"A topping with the name '{topping.Name}' already exists.");
 		}
 
 		_context.Entry(topping).State = EntityState.Modified;
