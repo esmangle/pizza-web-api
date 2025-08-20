@@ -170,12 +170,23 @@ public class PizzasController : ControllerBase
 			return NotFound();
 		}
 
-		_context.PizzaToppings.RemoveRange(pizza.PizzaToppings);
-		_context.Pizzas.Remove(pizza);
+		using var transaction = await _context.Database.BeginTransactionAsync();
 
-		await _context.SaveChangesAsync();
+		try
+		{
+			_context.PizzaToppings.RemoveRange(pizza.PizzaToppings);
+			_context.Pizzas.Remove(pizza);
 
-		return NoContent();
+			await _context.SaveChangesAsync();
+			await transaction.CommitAsync();
+
+			return NoContent();
+		}
+		catch
+		{
+			await transaction.RollbackAsync();
+			throw;
+		}
 	}
 
 	private async Task<(bool isDupe, List<int> invalidToppingIds)> ValidatePizzaAsync(
