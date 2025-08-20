@@ -11,7 +11,7 @@ builder.Services.AddSwaggerGen();
 
 // in-memory database for testing
 builder.Services.AddDbContext<PizzaDbContext>(
-    options => options.UseInMemoryDatabase("PizzaDb")
+	options => options.UseInMemoryDatabase("PizzaDb")
 );
 
 var app = builder.Build();
@@ -19,8 +19,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
