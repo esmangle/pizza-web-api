@@ -18,33 +18,23 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 `GET /api/toppings` - List all toppings
 ```json
 [
-  {
-    "id": 0,
-    "name": "string"
-  }
+  {"id": 0, "name": "string"}
 ]
 ```
 
 `POST /api/toppings` - Create a new topping
 ```json
-{
-  "name": "string"
-}
+{"name": "string"}
 ```
 
 `GET /api/toppings/{id}` - Get a topping's data
 ```json
-{
-  "id": 0,
-  "name": "string"
-}
+{"id": 0, "name": "string"}
 ```
 
 `PUT /api/toppings/{id}` - Update a topping's name
 ```json
-{
-  "name": "string"
-}
+{"name": "string"}
 ```
 
 `DELETE /api/toppings/{id}` - Delete a topping
@@ -58,10 +48,7 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
     "id": 0,
     "name": "string",
     "toppings": [
-      {
-        "id": 0,
-        "name": "string"
-      }
+      {"id": 0, "name": "string"}
     ]
   }
 ]
@@ -71,9 +58,7 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 ```json
 {
   "name": "string",
-  "toppingIds": [
-    0
-  ]
+  "toppingIds": [0]
 }
 ```
 
@@ -83,10 +68,7 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
   "id": 0,
   "name": "string",
   "toppings": [
-    {
-      "id": 0,
-      "name": "string"
-    }
+    {"id": 0, "name": "string"}
   ]
 }
 ```
@@ -95,9 +77,7 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 ```json
 {
   "name": "string",
-  "toppingIds": [
-    0
-  ]
+  "toppingIds": [0]
 }
 ```
 
