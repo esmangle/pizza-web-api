@@ -42,7 +42,7 @@ public class ToppingsController : ControllerBase
 	public async Task<ActionResult<Topping>> PostTopping(ToppingPostDto toppingDto)
 	{
 		bool isDupe = await _context.Toppings.AnyAsync(
-			t => String.Equals(t.Name, toppingDto.Name, StringComparison.OrdinalIgnoreCase)
+			t => t.Name.Equals(toppingDto.Name, StringComparison.OrdinalIgnoreCase)
 		);
 
 		if (isDupe)
@@ -74,7 +74,7 @@ public class ToppingsController : ControllerBase
 		}
 
 		bool isDupe = await _context.Toppings.AnyAsync(
-			t => t.Id != id && String.Equals(t.Name, toppingDto.Name, StringComparison.OrdinalIgnoreCase)
+			t => t.Id != id && t.Name.Equals(toppingDto.Name, StringComparison.OrdinalIgnoreCase)
 		);
 
 		if (isDupe)
