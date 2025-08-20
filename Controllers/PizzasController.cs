@@ -69,7 +69,7 @@ public class PizzasController : ControllerBase
 
 		var pizza = new Pizza { Name = pizzaDto.Name };
 
-		// autoincrement
+		// autoincrement (this is only necessary due to the in-memory database)
 		pizza.Id = (await _context.Pizzas.MaxAsync(p => (int?)p.Id) ?? 0) + 1;
 
 		_context.Pizzas.Add(pizza);
