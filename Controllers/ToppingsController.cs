@@ -116,10 +116,18 @@ public class ToppingsController : ControllerBase
 			return NotFound();
 		}
 
-		bool isInUse = await _context.PizzaToppings.AnyAsync(pt => pt.ToppingId == id);
-		if (isInUse)
+		var pizzas = await _context.PizzaToppings
+			.Where(pt => pt.ToppingId == id)
+			.Select(pt => pt.PizzaId)
+			.Distinct()
+			.ToListAsync();
+
+		if (pizzas.Any())
 		{
-			return Conflict("Cannot delete topping because it is used on one or more pizzas.");
+			return Conflict(new {
+				Message = "Cannot delete topping because it is used by one or more pizzas.",
+				PizzaIds = pizzas
+			});
 		}
 
 		_context.Toppings.Remove(topping);
