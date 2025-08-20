@@ -103,6 +103,22 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 
 `DELETE /api/pizzas/{id}` - Delete a pizza
 
+## Example usage:
+
+Create new topping:
+```bash
+curl -X POST https://localhost:5212/api/toppings \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Onions"}'
+```
+
+Create new pizza:
+```bash
+curl -X POST https://localhost:5212/api/pizzas \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Pepperoni and Ham", "toppingIds": [1, 3]}'
+```
+
 ## Default sample data:
 Toppings:
 1. Pepperoni
