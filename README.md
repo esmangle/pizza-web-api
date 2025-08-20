@@ -10,3 +10,20 @@ cd pizza-web-api
 dotnet watch run
 ```
 Swagger should be accessible at: http://localhost:5212/swagger/index.html
+
+### Default seeded data:
+Toppings:
+1. Pepperoni
+2. Pineapple
+3. Ham
+4. Bacon
+5. Sausages
+6. Mushrooms
+
+Pizzas:
+1. Pepperoni
+   - Toppings: Pepperoni
+2. Hawaiian
+   - Toppings: Pineapple, Ham
+3. Meat Lover's
+   - Toppings: Pepperoni, Ham, Bacon, Sausages
