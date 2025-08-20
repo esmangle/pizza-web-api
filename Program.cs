@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using PizzaManagerAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +11,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // in-memory database for testing
-builder.Services.AddDbContext<PizzaDbContext>(
-	options => options.UseInMemoryDatabase("PizzaDb")
-);
+builder.Services.AddDbContext<PizzaDbContext>(options => {
+	options.UseInMemoryDatabase("PizzaDb");
+	options.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+});
 
 var app = builder.Build();
 
