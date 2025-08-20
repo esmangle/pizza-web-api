@@ -65,33 +65,33 @@ public class PizzasController : ControllerBase
 			});
 		}
 
-		var pizza = new Pizza { Name = pizzaDto.Name };
+		using var transaction = await _context.Database.BeginTransactionAsync();
 
-		// autoincrement (this is only necessary due to the in-memory database)
-		pizza.Id = (await _context.Pizzas.MaxAsync(p => (int?)p.Id) ?? 0) + 1;
-
-		_context.Pizzas.Add(pizza);
-
-		foreach (var toppingId in pizzaDto.ToppingIds)
+		try
 		{
-			_context.PizzaToppings.Add(new PizzaTopping {
-				PizzaId = pizza.Id, ToppingId = toppingId
-			});
+			var pizza = new Pizza { Name = pizzaDto.Name };
+
+			// autoincrement (this is only necessary due to the in-memory database)
+			pizza.Id = (await _context.Pizzas.MaxAsync(p => (int?)p.Id) ?? 0) + 1;
+
+			_context.Pizzas.Add(pizza);
+
+			_context.PizzaToppings.AddRange(
+				pizzaDto.ToppingIds.Select(toppingId =>
+					new PizzaTopping { PizzaId = pizza.Id, ToppingId = toppingId }
+				)
+			);
+
+			await _context.SaveChangesAsync();
+			await transaction.CommitAsync();
+
+			return CreatedAtAction(nameof(GetPizza), new { id = pizza.Id }, MapToResponse(pizza));
 		}
-
-		await _context.SaveChangesAsync();
-
-		var newPizza = await _context.Pizzas
-			.Include(p => p.PizzaToppings)
-			.ThenInclude(pt => pt.Topping)
-			.FirstOrDefaultAsync(p => p.Id == pizza.Id);
-
-		if (newPizza == null)
+		catch
 		{
-			return NotFound();
+			await transaction.RollbackAsync();
+			throw;
 		}
-
-		return CreatedAtAction("GetPizza", new { id = pizza.Id }, MapToResponse(newPizza));
 	}
 
 	// PUT api/Pizzas/5
