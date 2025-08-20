@@ -49,21 +49,12 @@ public class PizzasController : ControllerBase
 	[HttpPost]
 	public async Task<ActionResult<PizzaResponse>> PostPizza(PizzaPostDto pizzaDto)
 	{
-		bool isDupe = await _context.Pizzas.AnyAsync(
-			p => p.Name.Equals(pizzaDto.Name, StringComparison.OrdinalIgnoreCase)
-		);
+		var (isDupe, invalidToppingIds) = await ValidatePizzaAsync(pizzaDto.Name, pizzaDto.ToppingIds);
 
 		if (isDupe)
 		{
 			return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
 		}
-
-		var invalidToppingIds = pizzaDto.ToppingIds.Except(
-			await _context.Toppings
-				.Where(t => pizzaDto.ToppingIds.Contains(t.Id))
-				.Select(t => t.Id)
-				.ToListAsync()
-		).ToList();
 
 		if (invalidToppingIds.Any())
 		{
@@ -116,24 +107,12 @@ public class PizzasController : ControllerBase
 			return NotFound();
 		}
 
-		if (!pizza.Name.Equals(pizzaDto.Name, StringComparison.OrdinalIgnoreCase))
+		var (isDupe, invalidToppingIds) = await ValidatePizzaAsync(pizzaDto.Name, pizzaDto.ToppingIds);
+
+		if (isDupe)
 		{
-			bool isDupe = await _context.Pizzas.AnyAsync(
-				p => p.Id != id && p.Name.Equals(pizzaDto.Name, StringComparison.OrdinalIgnoreCase)
-			);
-
-			if (isDupe)
-			{
-				return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
-			}
+			return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
 		}
-
-		var invalidToppingIds = pizzaDto.ToppingIds.Except(
-			await _context.Toppings
-				.Where(t => pizzaDto.ToppingIds.Contains(t.Id))
-				.Select(t => t.Id)
-				.ToListAsync()
-		).ToList();
 
 		if (invalidToppingIds.Any())
 		{
@@ -199,16 +178,35 @@ public class PizzasController : ControllerBase
 		return NoContent();
 	}
 
+	private async Task<(bool isDupe, List<int> invalidToppingIds)> ValidatePizzaAsync(
+		string name, List<int> toppingIds, int? id = null)
+	{
+		var dupeTask = _context.Pizzas.AnyAsync(p =>
+			(id == null || p.Id != id) && p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+		);
+
+		var toppingsTask = _context.Toppings
+			.Where(t => toppingIds.Contains(t.Id))
+			.Select(t => t.Id)
+			.ToListAsync();
+
+		await Task.WhenAll(dupeTask, toppingsTask);
+
+		return (dupeTask.Result, toppingIds.Except(toppingsTask.Result).ToList());
+	}
+
 	private PizzaResponse MapToResponse(Pizza pizza)
 	{
 		return new PizzaResponse
 		{
 			Id = pizza.Id,
 			Name = pizza.Name,
-			Toppings = pizza.PizzaToppings
-				.Select(pt => new PizzaToppingResponse {
-					Id = pt.Topping.Id, Name = pt.Topping.Name
-				}).ToList()
+			Toppings = pizza.PizzaToppings.Select(
+				pt => new PizzaToppingResponse {
+					Id = pt.Topping.Id,
+					Name = pt.Topping.Name
+				}
+			).ToList()
 		};
 	}
 }
