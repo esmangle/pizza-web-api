@@ -1,6 +1,6 @@
 # ASP.NET 8 Web API Coding Exercise
 
-Uses dotnet sdk version 8.0.411, developed with VS Code on Debian Linux.
+Uses dotnet sdk version 8.0.411, developed with VS Code on Debian Linux. Uses an in-memory database, though it can easily be switched out for another database like SQLite.
 
 ## How to run:
 Run these commands:
@@ -18,7 +18,7 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 `GET /api/toppings` - List all toppings
 ```json
 [
-  {"id": 0, "name": "string"}
+	{"id": 0, "name": "string"}
 ]
 ```
 
@@ -44,40 +44,40 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 `GET /api/pizzas` - List all pizzas with their toppings
 ```json
 [
-  {
-    "id": 0,
-    "name": "string",
-    "toppings": [
-      {"id": 0, "name": "string"}
-    ]
-  }
+	{
+		"id": 0,
+		"name": "string",
+		"toppings": [
+			{"id": 0, "name": "string"}
+		]
+	}
 ]
 ```
 
 `POST /api/pizzas` - Create a new pizza with toppings
 ```json
 {
-  "name": "string",
-  "toppingIds": [0]
+	"name": "string",
+	"toppingIds": [0]
 }
 ```
 
 `GET /api/pizzas/{id}` - Get a pizza's data with its toppings
 ```json
 {
-  "id": 0,
-  "name": "string",
-  "toppings": [
-    {"id": 0, "name": "string"}
-  ]
+	"id": 0,
+	"name": "string",
+	"toppings": [
+		{"id": 0, "name": "string"}
+	]
 }
 ```
 
 `PUT /api/pizzas/{id}` - Update a pizza's name and toppings
 ```json
 {
-  "name": "string",
-  "toppingIds": [0]
+	"name": "string",
+	"toppingIds": [0]
 }
 ```
 
@@ -88,15 +88,15 @@ Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 Create new topping:
 ```bash
 curl -X POST https://localhost:5212/api/toppings \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Onions"}'
+	-H "Content-Type: application/json" \
+	-d '{"name": "Onions"}'
 ```
 
 Create new pizza:
 ```bash
 curl -X POST https://localhost:5212/api/pizzas \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Pepperoni and Ham", "toppingIds": [1, 3]}'
+	-H "Content-Type: application/json" \
+	-d '{"name": "Pepperoni and Ham", "toppingIds": [1, 3]}'
 ```
 
 ## Default sample data:
