@@ -58,13 +58,20 @@ public class PizzasController : ControllerBase
 			return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
 		}
 
-		var invalidToppingIds = pizzaDto.ToppingIds
-			.Except(await _context.Toppings.Select(t => t.Id).ToListAsync())
-			.ToList();
+		var invalidToppingIds = pizzaDto.ToppingIds.Except(
+			await _context.Toppings
+				.Where(t => pizzaDto.ToppingIds.Contains(t.Id))
+				.Select(t => t.Id)
+				.ToListAsync()
+		).ToList();
 
 		if (invalidToppingIds.Any())
 		{
-			return BadRequest($"Invalid topping IDs: {string.Join(", ", invalidToppingIds)}");
+			return BadRequest(new
+			{
+				Message = $"Invalid topping IDs: {string.Join(", ", invalidToppingIds)}",
+				ToppingIds = invalidToppingIds
+			});
 		}
 
 		var pizza = new Pizza { Name = pizzaDto.Name };
@@ -121,13 +128,20 @@ public class PizzasController : ControllerBase
 			}
 		}
 
-		var invalidToppingIds = pizzaDto.ToppingIds
-			.Except(await _context.Toppings.Select(t => t.Id).ToListAsync())
-			.ToList();
+		var invalidToppingIds = pizzaDto.ToppingIds.Except(
+			await _context.Toppings
+				.Where(t => pizzaDto.ToppingIds.Contains(t.Id))
+				.Select(t => t.Id)
+				.ToListAsync()
+		).ToList();
 
 		if (invalidToppingIds.Any())
 		{
-			return BadRequest($"Invalid topping IDs: {string.Join(", ", invalidToppingIds)}");
+			return BadRequest(new
+			{
+				Message = $"Invalid topping IDs: {string.Join(", ", invalidToppingIds)}",
+				ToppingIds = invalidToppingIds
+			});
 		}
 
 		pizza.Name = pizzaDto.Name;
