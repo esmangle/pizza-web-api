@@ -39,16 +39,18 @@ public class ToppingsController : ControllerBase
 
 	// POST api/Toppings
 	[HttpPost]
-	public async Task<ActionResult<Topping>> PostTopping(Topping topping)
+	public async Task<ActionResult<Topping>> PostTopping(ToppingPostDto toppingDto)
 	{
 		bool isDupe = await _context.Toppings.AnyAsync(
-			t => String.Equals(t.Name, topping.Name, StringComparison.OrdinalIgnoreCase)
+			t => String.Equals(t.Name, toppingDto.Name, StringComparison.OrdinalIgnoreCase)
 		);
 
 		if (isDupe)
 		{
-			return BadRequest($"A topping with the name '{topping.Name}' already exists.");
+			return BadRequest($"A topping with the name '{toppingDto.Name}' already exists.");
 		}
+
+		var topping = new Topping { Name = toppingDto.Name };
 
 		// autoincrement
 		topping.Id = (await _context.Toppings.MaxAsync(t => (int?) t.Id) ?? 0) + 1;
@@ -62,21 +64,25 @@ public class ToppingsController : ControllerBase
 
 	// PUT api/Toppings/5
 	[HttpPut("{id}")]
-	public async Task<IActionResult> PutTopping(int id, Topping topping)
+	public async Task<IActionResult> PutTopping(int id, ToppingPutDto toppingDto)
 	{
-		if (id != topping.Id)
+		var topping = await _context.Toppings.FindAsync(id);
+
+		if (topping == null)
 		{
-			return BadRequest();
+			return NotFound();
 		}
 
 		bool isDupe = await _context.Toppings.AnyAsync(
-			t => t.Id != id && String.Equals(t.Name, topping.Name, StringComparison.OrdinalIgnoreCase)
+			t => t.Id != id && String.Equals(t.Name, toppingDto.Name, StringComparison.OrdinalIgnoreCase)
 		);
 
 		if (isDupe)
 		{
-			return BadRequest($"A topping with the name '{topping.Name}' already exists.");
+			return BadRequest($"A topping with the name '{toppingDto.Name}' already exists.");
 		}
+
+		topping.Name = toppingDto.Name;
 
 		_context.Entry(topping).State = EntityState.Modified;
 
@@ -122,4 +128,14 @@ public class ToppingsController : ControllerBase
 
 		return NoContent();
 	}
+}
+
+public class ToppingPostDto
+{
+	public required string Name { get; set; }
+}
+
+public class ToppingPutDto
+{
+	public required string Name { get; set; }
 }
