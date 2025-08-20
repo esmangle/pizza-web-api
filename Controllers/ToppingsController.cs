@@ -47,7 +47,7 @@ public class ToppingsController : ControllerBase
 
 		if (isDupe)
 		{
-			return BadRequest($"A topping with the name '{toppingDto.Name}' already exists.");
+			return Conflict($"A topping with the name '{toppingDto.Name}' already exists.");
 		}
 
 		var topping = new Topping { Name = toppingDto.Name };
@@ -79,7 +79,7 @@ public class ToppingsController : ControllerBase
 
 		if (isDupe)
 		{
-			return BadRequest($"A topping with the name '{toppingDto.Name}' already exists.");
+			return Conflict($"A topping with the name '{toppingDto.Name}' already exists.");
 		}
 
 		topping.Name = toppingDto.Name;
@@ -119,7 +119,7 @@ public class ToppingsController : ControllerBase
 		bool isInUse = await _context.PizzaToppings.AnyAsync(pt => pt.ToppingId == id);
 		if (isInUse)
 		{
-			return BadRequest("Cannot delete topping because it is used on one or more pizzas.");
+			return Conflict("Cannot delete topping because it is used on one or more pizzas.");
 		}
 
 		_context.Toppings.Remove(topping);

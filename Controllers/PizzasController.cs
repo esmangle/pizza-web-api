@@ -55,7 +55,7 @@ public class PizzasController : ControllerBase
 
 		if (isDupe)
 		{
-			return BadRequest($"A pizza with the name '{pizzaDto.Name}' already exists.");
+			return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
 		}
 
 		var invalidToppingIds = pizzaDto.ToppingIds
@@ -117,7 +117,7 @@ public class PizzasController : ControllerBase
 
 			if (isDupe)
 			{
-				return BadRequest($"A pizza with the name '{pizzaDto.Name}' already exists.");
+				return Conflict($"A pizza with the name '{pizzaDto.Name}' already exists.");
 			}
 		}
 
