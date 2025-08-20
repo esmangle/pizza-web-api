@@ -123,27 +123,38 @@ public class PizzasController : ControllerBase
 			});
 		}
 
-		pizza.Name = pizzaDto.Name;
-
-		var existingToppingIds = pizza.PizzaToppings.Select(pt => pt.ToppingId).ToList();
-		var toppingsToRemove = pizza.PizzaToppings.Where(pt => !pizzaDto.ToppingIds.Contains(pt.ToppingId)).ToList();
-		var toppingsToAdd = pizzaDto.ToppingIds.Except(existingToppingIds).ToList();
-
-		_context.PizzaToppings.RemoveRange(toppingsToRemove);
-
-		foreach (var toppingId in toppingsToAdd)
-		{
-			_context.PizzaToppings.Add(new PizzaTopping{
-				PizzaId = pizza.Id, ToppingId = toppingId
-			});
-		}
+		using var transaction = await _context.Database.BeginTransactionAsync();
 
 		try
 		{
+			pizza.Name = pizzaDto.Name;
+
+			var existingToppingIds = pizza.PizzaToppings
+				.Select(pt => pt.ToppingId)
+				.ToList();
+
+			var toppingsToRemove = pizza.PizzaToppings
+				.Where(pt => !pizzaDto.ToppingIds.Contains(pt.ToppingId))
+				.ToList();
+
+			var toppingsToAdd = pizzaDto.ToppingIds
+				.Except(existingToppingIds)
+				.Select(toppingId =>
+					new PizzaTopping { PizzaId = pizza.Id, ToppingId = toppingId }
+				);
+
+			_context.PizzaToppings.RemoveRange(toppingsToRemove);
+			_context.PizzaToppings.AddRange(toppingsToAdd);
+
 			await _context.SaveChangesAsync();
+			await transaction.CommitAsync();
+
+			return NoContent();
 		}
 		catch (DbUpdateConcurrencyException)
 		{
+			await transaction.RollbackAsync();
+
 			if (!_context.Pizzas.Any(e => e.Id == id))
 			{
 				return NotFound();
@@ -153,8 +164,11 @@ public class PizzasController : ControllerBase
 				throw;
 			}
 		}
-
-		return NoContent();
+		catch
+		{
+			await transaction.RollbackAsync();
+			throw;
+		}
 	}
 
 	// DELETE api/Pizzas/5
