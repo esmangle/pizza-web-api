@@ -1,8 +1,8 @@
-## ASP.NET 8 Web API Coding Exercise
+# ASP.NET 8 Web API Coding Exercise
 
 Uses dotnet sdk version 8.0.411, developed with VS Code on Debian Linux.
 
-### How to run:
+## How to run:
 Run these commands:
 ```bash
 git clone https://github.com/esmangle/pizza-web-api.git
@@ -11,23 +11,99 @@ dotnet watch run
 ```
 Swagger UI should be accessible at: http://localhost:5212/swagger/index.html
 
-### API Endpoints
+## API Endpoints
 
-Toppings
-- `GET /api/toppings` - List all toppings
-- `GET /api/toppings/{id}` - Get a topping's data
-- `POST /api/toppings` - Create a new topping
-- `PUT /api/toppings/{id}` - Update a topping's name
-- `DELETE /api/toppings/{id}` - Delete a topping
+### Toppings
 
-Pizzas
-- `GET /api/pizzas` - List all pizzas with their toppings
-- `GET /api/pizzas/{id}` - Get a pizza's data with its toppings
-- `POST /api/pizzas` - Create a new pizza with toppings
-- `PUT /api/pizzas/{id}` - Update a pizza's name and toppings
-- `DELETE /api/pizzas/{id}` - Delete a pizza
+`GET /api/toppings` - List all toppings
+```json
+[
+  {
+    "id": 0,
+    "name": "string"
+  }
+]
+```
 
-### Default sample data:
+`POST /api/toppings` - Create a new topping
+```json
+{
+  "name": "string"
+}
+```
+
+`GET /api/toppings/{id}` - Get a topping's data
+```json
+{
+  "id": 0,
+  "name": "string"
+}
+```
+
+`PUT /api/toppings/{id}` - Update a topping's name
+```json
+{
+  "name": "string"
+}
+```
+
+`DELETE /api/toppings/{id}` - Delete a topping
+
+### Pizzas
+
+`GET /api/pizzas` - List all pizzas with their toppings
+```json
+[
+  {
+    "id": 0,
+    "name": "string",
+    "toppings": [
+      {
+        "id": 0,
+        "name": "string"
+      }
+    ]
+  }
+]
+```
+
+`POST /api/pizzas` - Create a new pizza with toppings
+```json
+{
+  "name": "string",
+  "toppingIds": [
+    0
+  ]
+}
+```
+
+`GET /api/pizzas/{id}` - Get a pizza's data with its toppings
+```json
+{
+  "id": 0,
+  "name": "string",
+  "toppings": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ]
+}
+```
+
+`PUT /api/pizzas/{id}` - Update a pizza's name and toppings
+```json
+{
+  "name": "string",
+  "toppingIds": [
+    0
+  ]
+}
+```
+
+`DELETE /api/pizzas/{id}` - Delete a pizza
+
+## Default sample data:
 Toppings:
 1. Pepperoni
 2. Pineapple
