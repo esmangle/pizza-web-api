@@ -85,7 +85,17 @@ public class PizzasController : ControllerBase
 			await _context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			return CreatedAtAction(nameof(GetPizza), new { id = pizza.Id }, MapToResponse(pizza));
+			var newPizza = await _context.Pizzas
+				.Include(p => p.PizzaToppings)
+				.ThenInclude(pt => pt.Topping)
+				.FirstOrDefaultAsync(p => p.Id == pizza.Id);
+
+			if (newPizza == null)
+			{
+				return NotFound();
+			}
+
+			return CreatedAtAction(nameof(GetPizza), new { id = pizza.Id }, MapToResponse(newPizza));
 		}
 		catch
 		{
