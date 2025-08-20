@@ -50,6 +50,9 @@ public class ToppingsController : ControllerBase
 			return BadRequest($"A topping with the name '{topping.Name}' already exists.");
 		}
 
+		// autoincrement
+		topping.Id = (await _context.Toppings.MaxAsync(t => (int?) t.Id) ?? 0) + 1;
+
 		_context.Toppings.Add(topping);
 
 		await _context.SaveChangesAsync();
