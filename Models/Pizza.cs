@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace PizzaManagerAPI.Models;
 
 public class Pizza
@@ -16,6 +18,8 @@ public class PizzaResponse
 
 public class PizzaPostDto
 {
+	[Required]
+	[StringLength(100, MinimumLength = 2)]
 	public required string Name { get; set; }
 
 	public List<int> ToppingIds { get; set; } = new();
@@ -23,6 +27,8 @@ public class PizzaPostDto
 
 public class PizzaPutDto
 {
+	[Required]
+	[StringLength(100, MinimumLength = 2)]
 	public required string Name { get; set; }
 
 	public List<int> ToppingIds { get; set; } = new();
