@@ -8,3 +8,9 @@ public class PizzaTopping
 	public Pizza Pizza { get; set; } = null!;
 	public Topping Topping { get; set; } = null!;
 }
+
+public class PizzaToppingResponse
+{
+	public int Id { get; set; }
+	public required string Name { get; set; }
+}

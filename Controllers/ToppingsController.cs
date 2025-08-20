@@ -129,13 +129,3 @@ public class ToppingsController : ControllerBase
 		return NoContent();
 	}
 }
-
-public class ToppingPostDto
-{
-	public required string Name { get; set; }
-}
-
-public class ToppingPutDto
-{
-	public required string Name { get; set; }
-}
