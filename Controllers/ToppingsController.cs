@@ -20,27 +20,61 @@ public class ToppingsController : ControllerBase
 	[HttpGet]
 	public async Task<ActionResult<IEnumerable<Topping>>> GetToppings()
 	{
-		return NoContent();
+		return await _context.Toppings.ToListAsync();
 	}
 
 	// GET api/Toppings/5
 	[HttpGet("{id}")]
 	public async Task<ActionResult<Topping>> GetTopping(int id)
 	{
-		return NoContent();
+		var topping = await _context.Toppings.FindAsync(id);
+
+		if (topping == null)
+		{
+			return NotFound();
+		}
+
+		return topping;
 	}
 
 	// POST api/Toppings
 	[HttpPost]
 	public async Task<ActionResult<Topping>> PostTopping(Topping topping)
 	{
-		return NoContent();
+		_context.Toppings.Add(topping);
+
+		await _context.SaveChangesAsync();
+
+		return CreatedAtAction("GetTopping", new { id = topping.Id }, topping);
 	}
 
 	// PUT api/Toppings/5
 	[HttpPut("{id}")]
 	public async Task<IActionResult> PutTopping(int id, Topping topping)
 	{
+		if (id != topping.Id)
+		{
+			return BadRequest();
+		}
+
+		_context.Entry(topping).State = EntityState.Modified;
+
+		try
+		{
+			await _context.SaveChangesAsync();
+		}
+		catch (DbUpdateConcurrencyException)
+		{
+			if (!_context.Toppings.Any(e => e.Id == id))
+			{
+				return NotFound();
+			}
+			else
+			{
+				throw;
+			}
+		}
+
 		return NoContent();
 	}
 
@@ -48,6 +82,17 @@ public class ToppingsController : ControllerBase
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeleteTopping(int id)
 	{
+		var topping = await _context.Toppings.FindAsync(id);
+
+		if (topping == null)
+		{
+			return NotFound();
+		}
+
+		_context.Toppings.Remove(topping);
+
+		await _context.SaveChangesAsync();
+
 		return NoContent();
 	}
 }
