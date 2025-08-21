@@ -17,6 +17,7 @@ public class PizzaService : IPizzaService
 	public async Task<IEnumerable<PizzaResponse>> GetAllPizzasAsync()
 	{
 		return await _context.Pizzas
+			.AsNoTracking()
 			.Include(p => p.PizzaToppings)
 			.ThenInclude(pt => pt.Topping)
 			.Select(p => MapToResponse(p))
@@ -26,6 +27,7 @@ public class PizzaService : IPizzaService
 	public async Task<Result<PizzaResponse>> GetPizzaByIdAsync(int id)
 	{
 		var pizza = await _context.Pizzas
+			.AsNoTracking()
 			.Include(p => p.PizzaToppings)
 			.ThenInclude(pt => pt.Topping)
 			.FirstOrDefaultAsync(p => p.Id == id);
@@ -43,13 +45,7 @@ public class PizzaService : IPizzaService
 
 		if (dupe != null)
 		{
-			return new DuplicateResult<PizzaResponse>(MapToResponse(
-				await _context.Pizzas
-					.Include(p => p.PizzaToppings)
-					.ThenInclude(pt => pt.Topping)
-					.FirstOrDefaultAsync(p => p.Id == dupe.Id)
-				?? dupe
-			));
+			return new DuplicateResult<PizzaResponse>(MapToResponse(dupe));
 		}
 
 		if (invalidToppingIds.Any())
@@ -84,15 +80,11 @@ public class PizzaService : IPizzaService
 			await _context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			var newPizza = await _context.Pizzas
-				.Include(p => p.PizzaToppings)
-				.ThenInclude(pt => pt.Topping)
-				.FirstOrDefaultAsync(p => p.Id == pizza.Id);
-
-			if (newPizza == null)
-			{
-				return new NotFoundResult<PizzaResponse>();
-			}
+			await _context.Entry(pizza)
+				.Collection(p => p.PizzaToppings)
+				.Query()
+				.Include(pt => pt.Topping)
+				.LoadAsync();
 
 			return new OkResult<PizzaResponse>(MapToResponse(pizza));
 		}
@@ -120,13 +112,7 @@ public class PizzaService : IPizzaService
 
 		if (dupe != null)
 		{
-			return new DuplicateResult<PizzaResponse>(MapToResponse(
-				await _context.Pizzas
-					.Include(p => p.PizzaToppings)
-					.ThenInclude(pt => pt.Topping)
-					.FirstOrDefaultAsync(p => p.Id == dupe.Id)
-				?? dupe
-			));
+			return new DuplicateResult<PizzaResponse>(MapToResponse(dupe));
 		}
 
 		if (invalidToppingIds.Any())
@@ -164,17 +150,13 @@ public class PizzaService : IPizzaService
 			await _context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			var newPizza = await _context.Pizzas
-				.Include(p => p.PizzaToppings)
-				.ThenInclude(pt => pt.Topping)
-				.FirstOrDefaultAsync(p => p.Id == pizza.Id);
+			await _context.Entry(pizza)
+				.Collection(p => p.PizzaToppings)
+				.Query()
+				.Include(pt => pt.Topping)
+				.LoadAsync();
 
-			if (newPizza == null)
-			{
-				return new NotFoundResult<PizzaResponse>();
-			}
-
-			return new OkResult<PizzaResponse>(MapToResponse(newPizza));
+			return new OkResult<PizzaResponse>(MapToResponse(pizza));
 		}
 		catch (DbUpdateConcurrencyException)
 		{
@@ -199,6 +181,7 @@ public class PizzaService : IPizzaService
 	public async Task<Result<PizzaResponse>> DeletePizzaAsync(int id)
 	{
 		var pizza = await _context.Pizzas
+			.AsNoTracking()
 			.Include(p => p.PizzaToppings)
 			.ThenInclude(pt => pt.Topping)
 			.FirstOrDefaultAsync(p => p.Id == id);
@@ -232,18 +215,32 @@ public class PizzaService : IPizzaService
 	private async Task<(Pizza? dupe, IEnumerable<int> invalidToppingIds)> ValidatePizzaAsync(
 		string name, IEnumerable<int> toppingIds, int? id = null)
 	{
-		var dupeTask = _context.Pizzas.FirstOrDefaultAsync(p =>
+		bool isDupe = await _context.Pizzas.AnyAsync(p =>
 			(id == null || p.Id != id) && p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
 		);
 
+		// doing a second query is slower, but i assume this is a far less common case
+		var dupeTask = isDupe ? _context.Pizzas
+			.AsNoTracking()
+			.Include(p => p.PizzaToppings)
+			.ThenInclude(pt => pt.Topping)
+			.FirstOrDefaultAsync(p =>
+				p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+			)
+			: null;
+
 		var toppingsTask = _context.Toppings
+			.AsNoTracking()
 			.Where(t => toppingIds.Contains(t.Id))
 			.Select(t => t.Id)
 			.ToListAsync();
 
-		await Task.WhenAll(dupeTask, toppingsTask);
+		await (dupeTask == null ? toppingsTask : Task.WhenAll(dupeTask, toppingsTask));
 
-		return (dupeTask.Result, toppingIds.Except(toppingsTask.Result).ToList());
+		return (
+			dupeTask?.Result,
+			toppingIds.Except(toppingsTask.Result).ToList()
+		);
 	}
 
 	private static PizzaResponse MapToResponse(Pizza pizza)

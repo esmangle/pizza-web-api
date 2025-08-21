@@ -16,7 +16,10 @@ public class ToppingService : IToppingService
 
 	public async Task<IEnumerable<ToppingResponse>> GetAllToppingsAsync()
 	{
-		return await _context.Toppings.Select(p => MapToResponse(p)).ToListAsync();
+		return await _context.Toppings
+			.AsNoTracking()
+			.Select(t => MapToResponse(t))
+			.ToListAsync();
 	}
 
 	public async Task<Result<ToppingResponse>> GetToppingByIdAsync(int id)
@@ -30,9 +33,7 @@ public class ToppingService : IToppingService
 
 	public async Task<Result<ToppingResponse>> CreateToppingAsync(ToppingCreateDto toppingDto)
 	{
-		var dupe = await _context.Toppings.FirstOrDefaultAsync(
-			t => t.Name.Equals(toppingDto.Name, StringComparison.OrdinalIgnoreCase)
-		);
+		var dupe = await FindToppingDuplicate(toppingDto.Name);
 
 		if (dupe != null)
 		{
@@ -66,9 +67,7 @@ public class ToppingService : IToppingService
 			return new NotFoundResult<ToppingResponse>();
 		}
 
-		var dupe = await _context.Toppings.FirstOrDefaultAsync(
-			t => t.Id != id && t.Name.Equals(toppingDto.Name, StringComparison.OrdinalIgnoreCase)
-		);
+		var dupe = await FindToppingDuplicate(toppingDto.Name, id);
 
 		if (dupe != null)
 		{
@@ -111,6 +110,7 @@ public class ToppingService : IToppingService
 		{
 			return new ToppingInUseResult(
 				await _context.PizzaToppings
+					.AsNoTracking()
 					.Where(pt => pt.ToppingId == id)
 					.Select(pt => pt.PizzaId)
 					.Distinct()
@@ -125,6 +125,25 @@ public class ToppingService : IToppingService
 		await _context.SaveChangesAsync();
 
 		return new OkResult<ToppingResponse>(toppingResponse);
+	}
+
+	private async Task<Topping?> FindToppingDuplicate(string name, int? id = null)
+	{
+		bool isDupe = await _context.Toppings.AnyAsync(t =>
+			(id == null || t.Id != id) && t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+		);
+
+		if (!isDupe)
+		{
+			return null;
+		}
+
+		// doing a second query is slower, but i assume this is a far less common case
+		return await _context.Toppings
+			.AsNoTracking()
+			.FirstOrDefaultAsync(t =>
+				t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+			);
 	}
 
 	private static ToppingResponse MapToResponse(Topping topping)
