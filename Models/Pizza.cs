@@ -6,14 +6,14 @@ public class Pizza
 {
 	public int Id { get; set; }
 	public required string Name { get; set; }
-	public List<PizzaTopping> PizzaToppings { get; set; } = new();
+	public List<PizzaTopping> PizzaToppings { get; set; } = [];
 }
 
 public class PizzaResponse
 {
 	public int Id { get; set; }
 	public required string Name { get; set; }
-	public List<PizzaToppingResponse> Toppings { get; set; } = new();
+	public List<PizzaToppingResponse> Toppings { get; set; } = [];
 }
 
 public class PizzaCreateDto
@@ -22,7 +22,7 @@ public class PizzaCreateDto
 	[StringLength(100, MinimumLength = 2)]
 	public required string Name { get; set; }
 
-	public List<int> ToppingIds { get; set; } = new();
+	public List<int> ToppingIds { get; set; } = [];
 }
 
 public class PizzaUpdateDto : IValidatableObject
