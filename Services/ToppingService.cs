@@ -41,8 +41,11 @@ public class ToppingService : IToppingService
 
 		var topping = new Topping { Name = toppingDto.Name };
 
-		// autoincrement (this is only necessary due to the in-memory database)
-		topping.Id = (await _context.Toppings.MaxAsync(t => (int?) t.Id) ?? 0) + 1;
+		if (_context.Database.IsInMemory())
+		{
+			// autoincrement, for testing with in-memory database
+			topping.Id = (await _context.Toppings.MaxAsync(t => (int?)t.Id) ?? 0) + 1;
+		}
 
 		_context.Toppings.Add(topping);
 

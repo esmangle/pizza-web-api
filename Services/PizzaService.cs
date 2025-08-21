@@ -61,8 +61,11 @@ public class PizzaService : IPizzaService
 		{
 			var pizza = new Pizza { Name = pizzaDto.Name };
 
-			// autoincrement (this is only necessary due to the in-memory database)
-			pizza.Id = (await _context.Pizzas.MaxAsync(p => (int?)p.Id) ?? 0) + 1;
+			if (_context.Database.IsInMemory())
+			{
+				// autoincrement, for testing with in-memory database
+				pizza.Id = (await _context.Pizzas.MaxAsync(p => (int?)p.Id) ?? 0) + 1;
+			}
 
 			_context.Pizzas.Add(pizza);
 
