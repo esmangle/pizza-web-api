@@ -8,6 +8,12 @@ public class Topping
 	public required string Name { get; set; }
 }
 
+public class ToppingResponse
+{
+	public int Id { get; set; }
+	public required string Name { get; set; }
+}
+
 public class ToppingPostDto
 {
 	[Required]
