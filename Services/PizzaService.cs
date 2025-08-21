@@ -37,7 +37,9 @@ public class PizzaService : IPizzaService
 
 	public async Task<Result<PizzaResponse>> CreatePizzaAsync(PizzaCreateDto pizzaDto)
 	{
-		var (dupe, invalidToppingIds) = await ValidatePizzaAsync(pizzaDto.Name, pizzaDto.ToppingIds);
+		var (dupe, invalidToppingIds) = await ValidatePizzaAsync(
+			pizzaDto.Name, pizzaDto.ToppingIds
+		);
 
 		if (dupe != null)
 		{
@@ -71,7 +73,11 @@ public class PizzaService : IPizzaService
 
 			_context.PizzaToppings.AddRange(
 				pizzaDto.ToppingIds.Select(toppingId =>
-					new PizzaTopping { PizzaId = pizza.Id, ToppingId = toppingId }
+					new PizzaTopping
+					{
+						PizzaId = pizza.Id,
+						ToppingId = toppingId,
+					}
 				)
 			);
 
@@ -101,7 +107,6 @@ public class PizzaService : IPizzaService
 	{
 		var pizza = await _context.Pizzas
 			.Include(p => p.PizzaToppings)
-			.ThenInclude(pt => pt.Topping)
 			.FirstOrDefaultAsync(p => p.Id == id);
 
 		if (pizza == null)
@@ -109,7 +114,9 @@ public class PizzaService : IPizzaService
 			return new NotFoundResult<PizzaResponse>();
 		}
 
-		var (dupe, invalidToppingIds) = await ValidatePizzaAsync(pizzaDto.Name, pizzaDto.ToppingIds, id);
+		var (dupe, invalidToppingIds) = await ValidatePizzaAsync(
+			pizzaDto.Name, pizzaDto.ToppingIds, id
+		);
 
 		if (dupe != null)
 		{
@@ -144,7 +151,11 @@ public class PizzaService : IPizzaService
 			var toppingsToAdd = pizzaDto.ToppingIds
 				.Except(existingToppingIds)
 				.Select(toppingId =>
-					new PizzaTopping { PizzaId = pizza.Id, ToppingId = toppingId }
+					new PizzaTopping
+					{
+						PizzaId = pizza.Id,
+						ToppingId = toppingId,
+					}
 				);
 
 			_context.PizzaToppings.RemoveRange(toppingsToRemove);
@@ -153,7 +164,17 @@ public class PizzaService : IPizzaService
 			await _context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			return new OkResult<PizzaResponse>(MapToResponse(pizza));
+			var newPizza = await _context.Pizzas
+				.Include(p => p.PizzaToppings)
+				.ThenInclude(pt => pt.Topping)
+				.FirstOrDefaultAsync(p => p.Id == pizza.Id);
+
+			if (newPizza == null)
+			{
+				return new NotFoundResult<PizzaResponse>();
+			}
+
+			return new OkResult<PizzaResponse>(MapToResponse(newPizza));
 		}
 		catch (DbUpdateConcurrencyException)
 		{
@@ -232,7 +253,8 @@ public class PizzaService : IPizzaService
 			Id = pizza.Id,
 			Name = pizza.Name,
 			Toppings = pizza.PizzaToppings.Select(
-				pt => new PizzaToppingResponse {
+				pt => new PizzaToppingResponse
+				{
 					Id = pt.Topping.Id,
 					Name = pt.Topping.Name
 				}

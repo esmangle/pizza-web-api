@@ -39,7 +39,10 @@ public class ToppingService : IToppingService
 			return new DuplicateResult<ToppingResponse>(MapToResponse(dupe));
 		}
 
-		var topping = new Topping { Name = toppingDto.Name };
+		var topping = new Topping
+		{
+			Name = toppingDto.Name,
+		};
 
 		if (_context.Database.IsInMemory())
 		{
