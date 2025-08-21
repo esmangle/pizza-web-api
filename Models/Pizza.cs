@@ -16,7 +16,7 @@ public class PizzaResponse
 	public List<PizzaToppingResponse> Toppings { get; set; } = new();
 }
 
-public class PizzaPostDto
+public class PizzaCreateDto
 {
 	[Required]
 	[StringLength(100, MinimumLength = 2)]
@@ -25,7 +25,7 @@ public class PizzaPostDto
 	public List<int> ToppingIds { get; set; } = new();
 }
 
-public class PizzaPutDto
+public class PizzaUpdateDto
 {
 	[Required]
 	[StringLength(100, MinimumLength = 2)]

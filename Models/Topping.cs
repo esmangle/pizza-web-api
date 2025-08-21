@@ -14,14 +14,14 @@ public class ToppingResponse
 	public required string Name { get; set; }
 }
 
-public class ToppingPostDto
+public class ToppingCreateDto
 {
 	[Required]
 	[StringLength(100, MinimumLength = 2)]
 	public required string Name { get; set; }
 }
 
-public class ToppingPutDto
+public class ToppingUpdateDto
 {
 	[Required]
 	[StringLength(100, MinimumLength = 2)]

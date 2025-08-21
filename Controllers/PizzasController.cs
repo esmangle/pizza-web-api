@@ -47,7 +47,7 @@ public class PizzasController : ControllerBase
 
 	// POST api/Pizzas
 	[HttpPost]
-	public async Task<ActionResult<PizzaResponse>> PostPizza(PizzaPostDto pizzaDto)
+	public async Task<ActionResult<PizzaResponse>> PostPizza(PizzaCreateDto pizzaDto)
 	{
 		var (isDupe, invalidToppingIds) = await ValidatePizzaAsync(pizzaDto.Name, pizzaDto.ToppingIds);
 
@@ -106,7 +106,7 @@ public class PizzasController : ControllerBase
 
 	// PUT api/Pizzas/5
 	[HttpPut("{id}")]
-	public async Task<IActionResult> PutPizza(int id, PizzaPutDto pizzaDto)
+	public async Task<IActionResult> PutPizza(int id, PizzaUpdateDto pizzaDto)
 	{
 		var pizza = await _context.Pizzas
 			.Include(p => p.PizzaToppings)

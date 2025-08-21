@@ -39,7 +39,7 @@ public class ToppingsController : ControllerBase
 
 	// POST api/Toppings
 	[HttpPost]
-	public async Task<ActionResult<Topping>> PostTopping(ToppingPostDto toppingDto)
+	public async Task<ActionResult<Topping>> PostTopping(ToppingCreateDto toppingDto)
 	{
 		bool isDupe = await _context.Toppings.AnyAsync(
 			t => t.Name.Equals(toppingDto.Name, StringComparison.OrdinalIgnoreCase)
@@ -64,7 +64,7 @@ public class ToppingsController : ControllerBase
 
 	// PUT api/Toppings/5
 	[HttpPut("{id}")]
-	public async Task<IActionResult> PutTopping(int id, ToppingPutDto toppingDto)
+	public async Task<IActionResult> PutTopping(int id, ToppingUpdateDto toppingDto)
 	{
 		var topping = await _context.Toppings.FindAsync(id);
 
