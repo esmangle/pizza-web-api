@@ -75,6 +75,7 @@ public class PizzasController : ControllerBase
 			return BadRequest(new
 			{
 				Message = $"Invalid topping IDs: {string.Join(", ", badResult.InvalidToppingIds)}",
+				ErrorCode = "INVALID_TOPPING_IDS",
 				ToppingIds = badResult.InvalidToppingIds
 			});
 		}
@@ -115,6 +116,7 @@ public class PizzasController : ControllerBase
 			return BadRequest(new
 			{
 				Message = $"Invalid topping IDs: {string.Join(", ", badResult.InvalidToppingIds)}",
+				ErrorCode = "INVALID_TOPPING_IDS",
 				ToppingIds = badResult.InvalidToppingIds
 			});
 		}
