@@ -169,19 +169,6 @@ public class PizzaService : IPizzaService
 
 			return new OkResult<PizzaResponse>(MapToResponse(pizza));
 		}
-		catch (DbUpdateConcurrencyException)
-		{
-			await transaction.RollbackAsync();
-
-			if (!_context.Pizzas.Any(e => e.Id == id))
-			{
-				return new NotFoundResult<PizzaResponse>();
-			}
-			else
-			{
-				throw;
-			}
-		}
 		catch
 		{
 			await transaction.RollbackAsync();

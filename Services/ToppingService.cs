@@ -78,21 +78,7 @@ public class ToppingService : IToppingService
 
 		_context.Entry(topping).State = EntityState.Modified;
 
-		try
-		{
-			await _context.SaveChangesAsync();
-		}
-		catch (DbUpdateConcurrencyException)
-		{
-			if (!_context.Toppings.Any(e => e.Id == id))
-			{
-				return new NotFoundResult<ToppingResponse>();
-			}
-			else
-			{
-				throw;
-			}
-		}
+		await _context.SaveChangesAsync();
 
 		return new OkResult<ToppingResponse>(MapToResponse(topping));
 	}
