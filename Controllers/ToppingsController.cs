@@ -23,23 +23,20 @@ public class ToppingsController : ControllerBase
 		return Ok(await _service.GetAllToppingsAsync());
 	}
 
-	// GET api/Toppings/5
+	// GET api/Toppings/1
 	[HttpGet("{id}")]
 	public async Task<ActionResult<ToppingResponse>> GetTopping(int id)
 	{
 		var result = await _service.GetToppingByIdAsync(id);
 
-		if (result is OkResult<ToppingResponse> okResult)
+		return result switch
 		{
-			return Ok(okResult.Value);
-		}
+			OkResult<ToppingResponse> okResult => Ok(okResult.Value),
 
-		if (result is NotFoundResult<ToppingResponse>)
-		{
-			return NotFound();
-		}
+			NotFoundResult<ToppingResponse> => NotFound(),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
 	// POST api/Toppings
@@ -48,88 +45,70 @@ public class ToppingsController : ControllerBase
 	{
 		var result = await _service.CreateToppingAsync(toppingDto);
 
-		if (result is OkResult<ToppingResponse> okResult)
+		return result switch
 		{
-			var topping = okResult.Value;
+			OkResult<ToppingResponse> { Value: var topping } => CreatedAtAction(
+				nameof(GetTopping), new { id = topping.Id }, topping
+			),
 
-			return CreatedAtAction(nameof(GetTopping), new { id = topping.Id }, topping);
-		}
+			NotFoundResult<ToppingResponse> => NotFound(),
 
-		if (result is NotFoundResult<ToppingResponse>)
-		{
-			return NotFound();
-		}
-
-		if (result is DuplicateResult<ToppingResponse> dupeResult)
-		{
-			return Conflict(new
+			DuplicateResult<ToppingResponse> dupeResult => Conflict(new
 			{
 				Message = $"A topping with the name '{toppingDto.Name}' already exists.",
 				ErrorCode = "DUPLICATE_NAME",
 				ConflictingResource = dupeResult.ConflictValue,
-			});
-		}
+			}),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
-	// PUT api/Toppings/5
+	// PUT api/Toppings/1
 	[HttpPut("{id}")]
 	public async Task<ActionResult<ToppingResponse>> PutTopping(int id, ToppingUpdateDto toppingDto)
 	{
 		var result = await _service.UpdateToppingAsync(id, toppingDto);
 
-		if (result is OkResult<ToppingResponse> okResult)
+		return result switch
 		{
-			var topping = okResult.Value;
+			OkResult<ToppingResponse> { Value: var topping } => CreatedAtAction(
+				nameof(GetTopping), new { id = topping.Id }, topping
+			),
 
-			return CreatedAtAction(nameof(GetTopping), new { id = topping.Id }, topping);
-		}
+			NotFoundResult<ToppingResponse> => NotFound(),
 
-		if (result is NotFoundResult<ToppingResponse>)
-		{
-			return NotFound();
-		}
-
-		if (result is DuplicateResult<ToppingResponse> dupeResult)
-		{
-			return Conflict(new
+			DuplicateResult<ToppingResponse> dupeResult => Conflict(new
 			{
 				Message = $"A topping with the name '{toppingDto.Name}' already exists.",
 				ErrorCode = "DUPLICATE_NAME",
 				ConflictingResource = dupeResult.ConflictValue,
-			});
-		}
+			}),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
-	// DELETE api/Toppings/5
+	// DELETE api/Toppings/1
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeleteTopping(int id)
 	{
 		var result = await _service.DeleteToppingAsync(id);
 
-		if (result.IsSuccess)
+		return result switch
 		{
-			return NoContent();
-		}
+			{ IsSuccess: true } => NoContent(),
 
-		if (result is NotFoundResult<ToppingResponse>)
-		{
-			return NotFound();
-		}
+			NotFoundResult<ToppingResponse> => NotFound(),
 
-		if (result is ToppingInUseResult inUseResult)
-		{
-			return Conflict(new
+			ToppingInUseResult inUseResult => Conflict(new
 			{
 				Message = "Cannot delete topping because it is used by one or more pizzas.",
 				ErrorCode = "TOPPING_IN_USE",
 				PizzaIds = inUseResult.PizzaIds,
-			});
-		}
+			}),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 }

@@ -23,23 +23,20 @@ public class PizzasController : ControllerBase
 		return Ok(await _service.GetAllPizzasAsync());
 	}
 
-	// GET api/Pizzas/5
+	// GET api/Pizzas/1
 	[HttpGet("{id}")]
 	public async Task<ActionResult<PizzaResponse>> GetPizza(int id)
 	{
 		var result = await _service.GetPizzaByIdAsync(id);
 
-		if (result is OkResult<PizzaResponse> okResult)
+		return result switch
 		{
-			return Ok(okResult.Value);
-		}
+			OkResult<PizzaResponse> okResult => Ok(okResult.Value),
 
-		if (result is NotFoundResult<PizzaResponse>)
-		{
-			return NotFound();
-		}
+			NotFoundResult<PizzaResponse> => NotFound(),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
 	// POST api/Pizzas
@@ -48,98 +45,77 @@ public class PizzasController : ControllerBase
 	{
 		var result = await _service.CreatePizzaAsync(pizzaDto);
 
-		if (result is OkResult<PizzaResponse> okResult)
+		return result switch
 		{
-			var pizza = okResult.Value;
+			OkResult<PizzaResponse> { Value: var pizza } => CreatedAtAction(
+				nameof(GetPizza), new { id = pizza.Id }, pizza
+			),
 
-			return CreatedAtAction(nameof(GetPizza), new { id = pizza.Id }, pizza);
-		}
+			NotFoundResult<PizzaResponse> => NotFound(),
 
-		if (result is NotFoundResult<PizzaResponse>)
-		{
-			return NotFound();
-		}
-
-		if (result is DuplicateResult<PizzaResponse> dupeResult)
-		{
-			return Conflict(new
+			DuplicateResult<PizzaResponse> dupeResult => Conflict(new
 			{
 				Message = $"A pizza with the name '{pizzaDto.Name}' already exists.",
 				ErrorCode = "DUPLICATE_NAME",
 				ConflictingResource = dupeResult.ConflictValue,
-			});
-		}
+			}),
 
-		if (result is InvalidToppingsResult badResult)
-		{
-			return BadRequest(new
+			InvalidToppingsResult badResult => BadRequest(new
 			{
 				Message = $"Invalid topping IDs: {string.Join(", ", badResult.InvalidToppingIds)}",
 				ErrorCode = "INVALID_TOPPING_IDS",
 				ToppingIds = badResult.InvalidToppingIds
-			});
-		}
+			}),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
-	// PUT api/Pizzas/5
+	// PUT api/Pizzas/1
 	[HttpPut("{id}")]
 	public async Task<IActionResult> PutPizza(int id, PizzaUpdateDto pizzaDto)
 	{
 		var result = await _service.UpdatePizzaAsync(id, pizzaDto);
 
-		if (result is OkResult<PizzaResponse> okResult)
+		return result switch
 		{
-			var pizza = okResult.Value;
+			OkResult<PizzaResponse> { Value: var pizza } => CreatedAtAction(
+				nameof(GetPizza), new { id = pizza.Id }, pizza
+			),
 
-			return CreatedAtAction(nameof(GetPizza), new { id = pizza.Id }, pizza);
-		}
+			NotFoundResult<PizzaResponse> => NotFound(),
 
-		if (result is NotFoundResult<PizzaResponse>)
-		{
-			return NotFound();
-		}
-
-		if (result is DuplicateResult<PizzaResponse> dupeResult)
-		{
-			return Conflict(new
+			DuplicateResult<PizzaResponse> dupeResult => Conflict(new
 			{
 				Message = $"A pizza with the name '{pizzaDto.Name}' already exists.",
 				ErrorCode = "DUPLICATE_NAME",
 				ConflictingResource = dupeResult.ConflictValue,
-			});
-		}
+			}),
 
-		if (result is InvalidToppingsResult badResult)
-		{
-			return BadRequest(new
+			InvalidToppingsResult badResult => BadRequest(new
 			{
 				Message = $"Invalid topping IDs: {string.Join(", ", badResult.InvalidToppingIds)}",
 				ErrorCode = "INVALID_TOPPING_IDS",
 				ToppingIds = badResult.InvalidToppingIds
-			});
-		}
+			}),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 
-	// DELETE api/Pizzas/5
+	// DELETE api/Pizzas/1
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeletePizza(int id)
 	{
 		var result = await _service.DeletePizzaAsync(id);
 
-		if (result.IsSuccess)
+		return result switch
 		{
-			return NoContent();
-		}
+			{ IsSuccess: true } => NoContent(),
 
-		if (result is NotFoundResult<PizzaResponse>)
-		{
-			return NotFound();
-		}
+			NotFoundResult<PizzaResponse> => NotFound(),
 
-		return BadRequest();
+			_ => BadRequest()
+		};
 	}
 }
