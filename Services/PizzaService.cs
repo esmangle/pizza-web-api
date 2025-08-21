@@ -106,6 +106,11 @@ public class PizzaService : IPizzaService
 			return new NotFoundResult<PizzaResponse>();
 		}
 
+		if (pizzaDto.Name == null && pizzaDto.ToppingIds == null)
+		{
+			throw new ArgumentException($"No properties provided in {nameof(PizzaUpdateDto)}");
+		}
+
 		var (dupe, invalidToppingIds) = await ValidatePizzaAsync(
 			pizzaDto.Name, pizzaDto.ToppingIds, id
 		);
@@ -124,28 +129,34 @@ public class PizzaService : IPizzaService
 
 		try
 		{
-			pizza.Name = pizzaDto.Name;
+			if (pizzaDto.Name != null)
+			{
+				pizza.Name = pizzaDto.Name;
+			}
 
-			var existingToppingIds = pizza.PizzaToppings
-				.Select(pt => pt.ToppingId)
-				.ToList();
+			if (pizzaDto.ToppingIds != null)
+			{
+				var existingToppingIds = pizza.PizzaToppings
+					.Select(pt => pt.ToppingId)
+					.ToList();
 
-			var toppingsToRemove = pizza.PizzaToppings
-				.Where(pt => !pizzaDto.ToppingIds.Contains(pt.ToppingId))
-				.ToList();
+				var toppingsToRemove = pizza.PizzaToppings
+					.Where(pt => !pizzaDto.ToppingIds.Contains(pt.ToppingId))
+					.ToList();
 
-			var toppingsToAdd = pizzaDto.ToppingIds
-				.Except(existingToppingIds)
-				.Select(toppingId =>
-					new PizzaTopping
-					{
-						PizzaId = pizza.Id,
-						ToppingId = toppingId,
-					}
-				);
+				var toppingsToAdd = pizzaDto.ToppingIds
+					.Except(existingToppingIds)
+					.Select(toppingId =>
+						new PizzaTopping
+						{
+							PizzaId = pizza.Id,
+							ToppingId = toppingId,
+						}
+					);
 
-			_context.PizzaToppings.RemoveRange(toppingsToRemove);
-			_context.PizzaToppings.AddRange(toppingsToAdd);
+				_context.PizzaToppings.RemoveRange(toppingsToRemove);
+				_context.PizzaToppings.AddRange(toppingsToAdd);
+			}
 
 			await _context.SaveChangesAsync();
 			await transaction.CommitAsync();
@@ -213,33 +224,53 @@ public class PizzaService : IPizzaService
 	}
 
 	private async Task<(Pizza? dupe, IEnumerable<int> invalidToppingIds)> ValidatePizzaAsync(
-		string name, IEnumerable<int> toppingIds, int? id = null)
+		string? name = null, IEnumerable<int>? toppingIds = null, int? id = null)
+	{
+		var dupeTask = name == null ? null : FindPizzaDuplicate(name, id);
+		var toppingsTask = toppingIds == null ? null : FindInvalidToppingIds(toppingIds);
+
+		if (dupeTask != null && toppingsTask != null)
+		{
+			await Task.WhenAll(dupeTask, toppingsTask);
+		}
+		else
+		{
+			if (dupeTask != null) await dupeTask;
+			if (toppingsTask != null) await toppingsTask;
+		}
+
+		return (dupeTask?.Result, toppingsTask?.Result ?? []);
+	}
+
+	private async Task<Pizza?> FindPizzaDuplicate(string name, int? id = null)
 	{
 		bool isDupe = await _context.Pizzas.AnyAsync(p =>
 			(id == null || p.Id != id) && p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
 		);
 
+		if (!isDupe)
+		{
+			return null;
+		}
+
 		// doing a second query is slower, but i assume this is a far less common case
-		var dupeTask = isDupe ? _context.Pizzas
+		return await _context.Pizzas
 			.AsNoTracking()
 			.Include(p => p.PizzaToppings)
 			.ThenInclude(pt => pt.Topping)
 			.FirstOrDefaultAsync(p =>
 				p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-			)
-			: null;
+			);
+	}
 
-		var toppingsTask = _context.Toppings
-			.AsNoTracking()
-			.Where(t => toppingIds.Contains(t.Id))
-			.Select(t => t.Id)
-			.ToListAsync();
-
-		await (dupeTask == null ? toppingsTask : Task.WhenAll(dupeTask, toppingsTask));
-
-		return (
-			dupeTask?.Result,
-			toppingIds.Except(toppingsTask.Result).ToList()
+	private async Task<IEnumerable<int>> FindInvalidToppingIds(IEnumerable<int> toppingIds)
+	{
+		return toppingIds.Except(
+			await _context.Toppings
+				.AsNoTracking()
+				.Where(t => toppingIds.Contains(t.Id))
+				.Select(t => t.Id)
+				.ToListAsync()
 		);
 	}
 

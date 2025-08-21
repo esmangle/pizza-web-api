@@ -25,11 +25,18 @@ public class PizzaCreateDto
 	public List<int> ToppingIds { get; set; } = new();
 }
 
-public class PizzaUpdateDto
+public class PizzaUpdateDto : IValidatableObject
 {
-	[Required]
 	[StringLength(100, MinimumLength = 2)]
-	public required string Name { get; set; }
+	public string? Name { get; set; } = null;
 
-	public List<int> ToppingIds { get; set; } = new();
+	public List<int>? ToppingIds { get; set; } = null;
+
+	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+	{
+		if (Name == null && ToppingIds == null)
+		{
+			yield return new ValidationResult("No parameters provided");
+		}
+	}
 }
